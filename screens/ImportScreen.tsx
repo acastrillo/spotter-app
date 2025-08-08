@@ -1,18 +1,37 @@
 // screens/ImportScreen.tsx
-
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
+import WorkoutCard from '../components/WorkoutCard';
+import { parseWorkoutCaption } from '../utils/parser';
+import { WorkoutStep } from '../utils/types';
+import { saveWorkout } from '../storage/workouts';
 
-const ImportScreen = () => {
+export default function ImportScreen() {
   const [url, setUrl] = useState('');
   const [caption, setCaption] = useState('');
-  const [parsedWorkout, setParsedWorkout] = useState<string[]>([]);
+  const [parsedWorkout, setParsedWorkout] = useState<WorkoutStep[]>([]);
 
   const handleParse = () => {
-    // Temporary stub parsing (we'll improve in Step 2)
-    const lines = caption.split('\n').filter(line => line.trim().length > 0);
-    setParsedWorkout(lines);
+    const result = parseWorkoutCaption(caption);
+    setParsedWorkout(result);
   };
+
+  const handleSave = async () => {
+  if (parsedWorkout.length === 0) {
+    Alert.alert('Nothing to save', 'Parse a workout first.');
+    return;
+  }
+  const title =
+    parsedWorkout.find(s => s.type === 'exercise' && s.exercise)?.exercise ||
+    'Workout';
+  await saveWorkout({
+    title,
+    url,
+    caption,
+    steps: parsedWorkout,
+  });
+  Alert.alert('Saved!', 'Your workout was saved to the Library.');
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -37,41 +56,28 @@ const ImportScreen = () => {
 
       <Button title="Parse Workout" onPress={handleParse} />
 
+      <View style={{ height: 10 }} />
+
+      <Button title="Save Workout" onPress={handleSave} />
+
       {parsedWorkout.length > 0 && (
         <View style={styles.result}>
           <Text style={styles.label}>Parsed Workout:</Text>
-          {parsedWorkout.map((line, idx) => (
-            <Text key={idx}>• {line}</Text>
+          {parsedWorkout.map((step, idx) => (
+            <WorkoutCard key={idx} step={step} />
           ))}
         </View>
       )}
     </ScrollView>
   );
-};
-
-export default ImportScreen;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  label: {
-    marginTop: 15,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { padding: 20 },
+  label: { marginTop: 15, fontWeight: 'bold', fontSize: 16 },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-    padding: 10,
-    marginTop: 5,
+    borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 10, marginTop: 5,
   },
-  multiline: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  result: {
-    marginTop: 20,
-  },
+  multiline: { height: 120, textAlignVertical: 'top' },
+  result: { marginTop: 20 },
 });
