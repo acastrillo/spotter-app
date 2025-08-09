@@ -1,0 +1,14 @@
+# 1) Simple sets/reps block
+Incline Dumbbell Press 4 12, 10, 8, 6
+Seated Row 3 10, 10, 10
+
+# 2) Mixed time/distance + rest
+1000m ski
+Rest 1 min
+30 sec plank
+
+# 3) Complex instruction cluster
+Complete 3 rounds:
+- 400 m run
+- 20 push-ups
+- Rest 90 sec

@@ -31,7 +31,7 @@ export default function LibraryScreen() {
           renderItem={({ item }) => (
             <Pressable style={styles.card} onLongPress={() => onDelete(item.id)}>
               <Text style={styles.title}>{item.title}</Text>
-              {item.url ? <Text style={styles.meta} numberOfLines={1}>{item.url}</Text> : null}
+              {item.sourceUrl ? <Text style={styles.meta} numberOfLines={1}>{item.sourceUrl}</Text> : null}
               <Text style={styles.meta}>
                 {new Date(item.createdAt).toLocaleString()} • {item.steps.length} steps
               </Text>
@@ -46,7 +46,7 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  card: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 12, backgroundColor: 'white' },
+  card: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, backgroundColor: 'white', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   title: { fontSize: 16, fontWeight: '700' },
   meta: { color: '#6B7280', marginTop: 4 },
 });
