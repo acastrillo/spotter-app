@@ -5,5 +5,15 @@ export type WorkoutStep = {
   exercise?: string;
   sets?: number;
   reps?: number[];
-  duration?: string; // for time or rest, e.g., "1 min", "30 sec"
+  duration?: string;  // time for work or rest
+  weight?: string;    // e.g., '225 lb', '16 kg'
+  distance?: string;  // e.g., '1000 m', '1 mi'
+};
+
+export type Workout = {
+  id: string;
+  title: string;
+  sourceUrl?: string;
+  createdAt: number;
+  steps: WorkoutStep[];
 };
