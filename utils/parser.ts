@@ -1,5 +1,9 @@
 // utils/parser.ts
-import { WorkoutStep } from './types';
+import { WorkoutStep, ParsedWorkoutMeta } from './types';
+import { detectEquipment } from './equipment';
+import { getUserEquipmentList } from '../storage/userPrefs';
+import { buildTags } from './tags';
+import { estimateTotalTimeSec } from './time';
 
 const TIME_UNITS = '(sec|second|seconds|min|minute|minutes)';
 const DIST_UNITS = '(m|meter|meters|km|k|mi|mile|miles)';
@@ -110,4 +114,46 @@ export function parseWorkoutCaption(caption: string): WorkoutStep[] {
   }
 
   return steps;
+}
+
+function detectTitle(caption: string): string | undefined {
+  const lines = caption.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  for (const l of lines) {
+    if (l.startsWith('#')) continue;
+    if (l.length > 0) return l;
+  }
+}
+
+function detectWorkoutTypes(text: string): string[] {
+  const hay = (text || '').toLowerCase();
+  const found = new Set<string>();
+  const addIf = (re: RegExp, label: string) => { if (re.test(hay)) found.add(label); };
+  addIf(/\bamrap\b/, 'amrap');
+  addIf(/\bemom\b/, 'emom');
+  addIf(/\btabata\b/, 'tabata');
+  addIf(/\bfor time\b/, 'for time');
+  addIf(/\bmetcon\b/, 'metcon');
+  addIf(/\bcircuit\b/, 'circuit');
+  addIf(/\bladder\b/, 'ladder');
+  addIf(/\binterval\b/, 'interval');
+  return Array.from(found);
+}
+
+export async function parseWorkout(caption: string, sourceUrl?: string): Promise<{ steps: WorkoutStep[]; meta: ParsedWorkoutMeta }> {
+  const steps = parseWorkoutCaption(caption);
+  const userEquip = await getUserEquipmentList();
+  const equipment = detectEquipment(caption, userEquip);
+  const workoutTypes = detectWorkoutTypes(caption);
+  const detectedTitle = detectTitle(caption);
+  const totalTimeEstimateSec = estimateTotalTimeSec(steps);
+  const tags = buildTags(detectedTitle || 'workout', equipment, workoutTypes);
+  const meta: ParsedWorkoutMeta = {
+    detectedTitle,
+    sourceUrl,
+    equipment,
+    workoutTypes: workoutTypes as any,
+    tags,
+    totalTimeEstimateSec,
+  };
+  return { steps, meta };
 }

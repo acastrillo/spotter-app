@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Alert, Linking, Pressable } from 'react-native';
 import ParsedTable from '../components/ParsedTable';
-import { parseWorkoutCaption } from '../utils/parser';
-import { WorkoutStep } from '../utils/types';
+import { parseWorkout } from '../utils/parser';
+import { WorkoutStep, SavedWorkout } from '../utils/types';
 import { saveWorkout } from '../storage/workouts';
 
 export default function ImportScreen() {
@@ -11,10 +11,14 @@ export default function ImportScreen() {
   const [url, setUrl] = useState('');
   const [caption, setCaption] = useState('');
   const [parsedWorkout, setParsedWorkout] = useState<WorkoutStep[]>([]);
+  const [metaTags, setMetaTags] = useState<string[]>([]);
 
   const handleParse = () => {
-    const result = parseWorkoutCaption(caption);
-    setParsedWorkout(result);
+    parseWorkout(caption, url).then(({ steps, meta }) => {
+      setParsedWorkout(steps);
+      if (!title.trim() && meta.detectedTitle) setTitle(meta.detectedTitle);
+      setMetaTags(meta.tags);
+    });
   };
 
   const handleSave = async () => {
@@ -24,11 +28,8 @@ export default function ImportScreen() {
     }
     const derivedTitle = title.trim() ||
       (parsedWorkout.find(s => s.type === 'exercise' && s.exercise)?.exercise ?? 'Workout');
-    await saveWorkout({
-      title: derivedTitle,
-      sourceUrl: url.trim() || undefined,
-      steps: parsedWorkout,
-    });
+    const meta = { detectedTitle: derivedTitle, sourceUrl: url.trim() || undefined, equipment: [], workoutTypes: [], tags: metaTags, totalTimeEstimateSec: undefined } as SavedWorkout['meta'];
+    await saveWorkout({ title: derivedTitle, url: url.trim() || undefined, steps: parsedWorkout, meta } as any);
     Alert.alert('Saved!', 'Your workout was saved to the Library.');
   };
 
