@@ -1,7 +1,6 @@
 // utils/parser.ts
 import { WorkoutStep, ParsedWorkoutMeta } from './types';
 import { detectEquipment } from './equipment';
-import { getUserEquipmentList } from '../storage/userPrefs';
 import { buildTags } from './tags';
 import { estimateTotalTimeSec } from './time';
 
@@ -141,6 +140,7 @@ function detectWorkoutTypes(text: string): string[] {
 
 export async function parseWorkout(caption: string, sourceUrl?: string): Promise<{ steps: WorkoutStep[]; meta: ParsedWorkoutMeta }> {
   const steps = parseWorkoutCaption(caption);
+  const { getUserEquipmentList } = await import('../storage/userPrefs');
   const userEquip = await getUserEquipmentList();
   const equipment = detectEquipment(caption, userEquip);
   const workoutTypes = detectWorkoutTypes(caption);
