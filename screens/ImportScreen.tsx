@@ -12,13 +12,20 @@ export default function ImportScreen() {
   const [caption, setCaption] = useState('');
   const [parsedWorkout, setParsedWorkout] = useState<WorkoutStep[]>([]);
   const [metaTags, setMetaTags] = useState<string[]>([]);
+  const [isParsing, setIsParsing] = useState(false);
 
-  const handleParse = () => {
-    parseWorkout(caption, url).then(({ steps, meta }) => {
+  const handleParse = async () => {
+    try {
+      setIsParsing(true);
+      const { steps, meta } = await parseWorkout(caption, url);
       setParsedWorkout(steps);
       if (!title.trim() && meta.detectedTitle) setTitle(meta.detectedTitle);
       setMetaTags(meta.tags);
-    });
+    } catch (e) {
+      Alert.alert('Parse failed', 'Please check your caption and try again.');
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   const handleSave = async () => {
@@ -34,7 +41,8 @@ export default function ImportScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.centerContainer}>
+      <View style={styles.panel}>
       <View style={styles.legendRow}>
         <View style={[styles.legendChip, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB' }]}>
           <Text>💪 Exercise</Text>
@@ -74,8 +82,8 @@ export default function ImportScreen() {
       />
 
       <View style={styles.buttonRow}>
-        <Pressable style={[styles.button, styles.primary]} onPress={handleParse}>
-          <Text style={styles.buttonText}>Parse Workout</Text>
+        <Pressable style={[styles.button, styles.primary, isParsing && styles.disabled]} onPress={handleParse} disabled={isParsing}>
+          <Text style={styles.buttonText}>{isParsing ? 'Parsing…' : 'Parse Workout'}</Text>
         </Pressable>
         <Pressable style={[styles.button, styles.secondary]} onPress={handleSave}>
           <Text style={styles.buttonText}>Save Workout</Text>
@@ -94,12 +102,14 @@ export default function ImportScreen() {
           <ParsedTable steps={parsedWorkout} />
         </View>
       )}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, maxWidth: 960, alignSelf: 'center', width: '100%' },
+  centerContainer: { padding: 20, alignItems: 'center' },
+  panel: { width: '100%', maxWidth: 430, alignSelf: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   label: { marginTop: 15, fontWeight: 'bold', fontSize: 16 },
   input: {
     borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 10, marginTop: 5,
@@ -109,9 +119,10 @@ const styles = StyleSheet.create({
   legendRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   legendChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   buttonRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  button: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  button: { flex: 1, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   primary: { backgroundColor: '#2563EB' },
   secondary: { backgroundColor: '#059669' },
+  disabled: { opacity: 0.6 },
   buttonText: { color: 'white', fontWeight: '700' },
   sourcePill: {
     alignSelf: 'flex-start',

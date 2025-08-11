@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, Text } from 'react-native';
 
 import ImportScreen from '../screens/ImportScreen';
@@ -22,10 +23,25 @@ const Tab = createBottomTabNavigator();
 
 function Tabs() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          const map: Record<string, keyof typeof Ionicons.glyphMap> = {
+            Home: 'calendar',
+            Workouts: 'barbell',
+            Add: 'add-circle',
+            Custom: 'star',
+          };
+          const name = map[route.name] || 'ellipse';
+          return <Ionicons name={name} color={color} size={size} />;
+        },
+        tabBarActiveTintColor: '#2563EB',
+        tabBarInactiveTintColor: '#6B7280',
+      })}
+    >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Workouts" component={WorkoutsScreen} />
-      <Tab.Screen name="Add" component={ImportScreen} />
+      <Tab.Screen name="Add" component={ImportScreen} options={{ title: 'Import' }} />
       <Tab.Screen name="Custom" component={CustomWorkoutsScreen} />
     </Tab.Navigator>
   );
