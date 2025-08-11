@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getAllWorkouts, deleteWorkout, SavedWorkout } from '../storage/workouts';
 
 export default function LibraryScreen() {
   const [items, setItems] = React.useState<SavedWorkout[]>([]);
+  const navigation = useNavigation<any>();
 
   const load = React.useCallback(async () => {
     const data = await getAllWorkouts();
@@ -29,12 +31,10 @@ export default function LibraryScreen() {
           data={items}
           keyExtractor={(w) => w.id}
           renderItem={({ item }) => (
-            <Pressable style={styles.card} onLongPress={() => onDelete(item.id)}>
+            <Pressable style={styles.card} onPress={() => navigation.navigate('WorkoutDetail', { id: item.id })} onLongPress={() => onDelete(item.id)}>
               <Text style={styles.title}>{item.title}</Text>
               {item.sourceUrl ? <Text style={styles.meta} numberOfLines={1}>{item.sourceUrl}</Text> : null}
-              <Text style={styles.meta}>
-                {new Date(item.createdAt).toLocaleString()} • {item.steps.length} steps
-              </Text>
+              <Text style={styles.meta}>{new Date(item.createdAt).toLocaleString()} • {item.steps.length} steps</Text>
             </Pressable>
           )}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
